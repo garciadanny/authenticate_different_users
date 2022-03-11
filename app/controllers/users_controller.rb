@@ -1,11 +1,10 @@
 class UsersController < Clearance::UsersController
-
   def create
     @user = user_from_params
 
     if @user.save
       sign_in @user
-      redirect_to user_type_path(@user.user_type)
+      redirect_to user_root_path
     else
       render template: "users/new"
     end
@@ -14,11 +13,11 @@ class UsersController < Clearance::UsersController
 
   private
 
-  def user_type_path(user_type)
-    h = { 'admin'    => admin_dashboard_path,
-          'guardian' => guardian_dashboard_path,
-          'vendor'   => vendor_dashboard_path }
-    h[user_type]
+  def user_root_path
+    case @user.user_type
+    when "guardian" then guardian_dashboard_index_path
+    when "admin" then admin_dashboard_index_path
+    end
   end
 
   def user_from_params
@@ -31,4 +30,7 @@ class UsersController < Clearance::UsersController
     end
   end
 
+  def user_params
+    params.require(:user).permit(:email, :password, :user_type)
+  end
 end

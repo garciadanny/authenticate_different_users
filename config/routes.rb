@@ -8,16 +8,19 @@ Rails.application.routes.draw do
       only: [:edit, :update]
   end
 
-  User::TYPES.each do |type|
-    get "/#{type}_dashboard", to: "#{type}_dashboard#index", as: "#{type}_dashboard"
+  constraints Clearance::Constraints::SignedIn.new { |user| user.admin? } do
+    scope module: :admin, as: :admin do
+      resources :dashboard, only: [:index]
+    end
+  end
+
+  constraints Clearance::Constraints::SignedIn.new { |user| user.guardian? } do
+    scope module: :guardian, as: :guardian do
+      resources :dashboard, only: [:index]
+    end
   end
 
   get "/sign_in" => "clearance/sessions#new", as: "sign_in"
   delete "/sign_out" => "clearance/sessions#destroy", as: "sign_out"
   get "/sign_up" => "clearance/users#new", as: "sign_up"
-
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Defines the root path route ("/")
-  # root "articles#index"
 end
